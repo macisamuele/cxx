@@ -1564,6 +1564,10 @@ fn expand_cxx_vector(
     let resolve = types.resolve(elem);
     let prefix = format!("cxxbridge1$std$vector${}$", resolve.name.to_symbol());
     let link_size = format!("{}size", prefix);
+    let link_reserve = format!("{}reserve", prefix);
+    let link_capacity = format!("{}capacity", prefix);
+    let link_shrink_to_fit = format!("{}shrink_to_fit", prefix);
+    let link_clear = format!("{}clear", prefix);
     let link_get_unchecked = format!("{}get_unchecked", prefix);
     let link_push_back = format!("{}push_back", prefix);
     let link_pop_back = format!("{}pop_back", prefix);
@@ -1632,6 +1636,38 @@ fn expand_cxx_vector(
                     fn __vector_size #impl_generics(_: &::cxx::CxxVector<#elem #ty_generics>) -> usize;
                 }
                 unsafe { __vector_size(v) }
+            }
+            #[doc(hidden)]
+            fn __vector_reserve(v: &mut ::cxx::CxxVector<Self>, additional: usize) {
+                extern "C" {
+                    #[link_name = #link_reserve]
+                    fn __vector_reserve #impl_generics(_: &::cxx::CxxVector<#elem #ty_generics>, _: usize);
+                }
+                unsafe { __vector_reserve(v, additional) }
+            }
+            #[doc(hidden)]
+            fn __vector_capacity(v: &::cxx::CxxVector<Self>) -> usize {
+                extern "C" {
+                    #[link_name = #link_capacity]
+                    fn __vector_capacity #impl_generics(_: &::cxx::CxxVector<#elem #ty_generics>) -> usize;
+                }
+                unsafe { __vector_capacity(v) }
+            }
+            #[doc(hidden)]
+            fn __vector_shrink_to_fit(v: &mut ::cxx::CxxVector<Self>) {
+                extern "C" {
+                    #[link_name = #link_shrink_to_fit]
+                    fn __vector_shrink_to_fit #impl_generics(_: &::cxx::CxxVector<#elem #ty_generics>);
+                }
+                unsafe { __vector_shrink_to_fit(v) }
+            }
+            #[doc(hidden)]
+            fn __vector_clear(v: &mut ::cxx::CxxVector<Self>) {
+                extern "C" {
+                    #[link_name = #link_clear]
+                    fn __vector_clear #impl_generics(_: &::cxx::CxxVector<#elem #ty_generics>);
+                }
+                unsafe { __vector_clear(v) }
             }
             #[doc(hidden)]
             unsafe fn __get_unchecked(v: *mut ::cxx::CxxVector<Self>, pos: usize) -> *mut Self {

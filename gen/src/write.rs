@@ -1861,6 +1861,38 @@ fn write_cxx_vector(out: &mut OutFile, key: NamedImplKey) {
     writeln!(out, "  return s.size();");
     writeln!(out, "}}");
 
+    writeln!(
+        out,
+        "void cxxbridge1$std$vector${}$reserve(::std::vector<{}> &s, ::std::size_t additional) noexcept {{",
+        instance, inner,
+    );
+    writeln!(out, "  s.reserve(additional);");
+    writeln!(out, "}}");
+
+    writeln!(
+        out,
+        "::std::size_t cxxbridge1$std$vector${}$capacity(const ::std::vector<{}> &s) noexcept {{",
+        instance, inner,
+    );
+    writeln!(out, "  return s.capacity();");
+    writeln!(out, "}}");
+
+    writeln!(
+        out,
+        "void cxxbridge1$std$vector${}$shrink_to_fit(::std::vector<{}> &s) noexcept {{",
+        instance, inner,
+    );
+    writeln!(out, "  s.shrink_to_fit();");
+    writeln!(out, "}}");
+
+    writeln!(
+        out,
+        "void cxxbridge1$std$vector${}$clear(::std::vector<{}> &s) noexcept {{",
+        instance, inner,
+    );
+    writeln!(out, "  s.clear();");
+    writeln!(out, "}}");
+
     begin_function_definition(out);
     writeln!(
         out,

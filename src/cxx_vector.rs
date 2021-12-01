@@ -36,6 +36,15 @@ impl<T> CxxVector<T>
 where
     T: VectorElement,
 {
+    /// Returns true if the vector contains no elements.
+    ///
+    /// Matches the behavior of C++ [std::vector\<T\>::empty][empty].
+    ///
+    /// [empty]: https://en.cppreference.com/w/cpp/container/vector/empty
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
     /// Returns the number of elements in the vector.
     ///
     /// Matches the behavior of C++ [std::vector\<T\>::size][size].
@@ -45,13 +54,42 @@ where
         T::__vector_size(self)
     }
 
-    /// Returns true if the vector contains no elements.
+    /// Reserves capacity for at least additional more elements
     ///
-    /// Matches the behavior of C++ [std::vector\<T\>::empty][empty].
+    /// Matches the behavior of C++ [std::vector\<T\>::reserve][reserve].
     ///
-    /// [empty]: https://en.cppreference.com/w/cpp/container/vector/empty
-    pub fn is_empty(&self) -> bool {
-        self.len() == 0
+    /// [size]: https://en.cppreference.com/w/cpp/container/vector/reserve
+    pub fn reserve(&mut self, additional: usize) {
+        T::__vector_reserve(self, additional)
+    }
+
+    /// Returns the number of elements the vector can hold without reallocating.
+    ///
+    /// Matches the behavior of C++ [std::vector\<T\>::capacity][capacity].
+    ///
+    /// [size]: https://en.cppreference.com/w/cpp/container/vector/capacity
+    pub fn capacity(&mut self) -> usize {
+        T::__vector_capacity(self)
+    }
+
+    /// Shrinks the capacity of the vector as much as possible.
+    ///
+    /// Matches the behavior of C++ [std::vector\<T\>::shrink_to_fit][shrink_to_fit].
+    ///
+    /// [size]: https://en.cppreference.com/w/cpp/container/vector/shrink_to_fit
+    pub fn shrink_to_fit(&mut self) {
+        T::__vector_shrink_to_fit(self)
+    }
+
+    /// Clears the vector, removing all values.
+    /// 
+    /// Note that this method has no effect on the allocated capacity of the vector.
+    ///
+    /// Matches the behavior of C++ [std::vector\<T\>::shrink_to_fit][shrink_to_fit].
+    ///
+    /// [size]: https://en.cppreference.com/w/cpp/container/vector/shrink_to_fit
+    pub fn clear(&mut self) {
+        T::__vector_clear(self)
     }
 
     /// Returns a reference to an element at the given position, or `None` if
@@ -336,6 +374,14 @@ pub unsafe trait VectorElement: Sized {
     #[doc(hidden)]
     fn __vector_size(v: &CxxVector<Self>) -> usize;
     #[doc(hidden)]
+    fn __vector_reserve(v: &mut CxxVector<Self>, additional: usize);
+    #[doc(hidden)]
+    fn __vector_capacity(v: &CxxVector<Self>) -> usize;
+    #[doc(hidden)]
+    fn __vector_shrink_to_fit(v: &mut CxxVector<Self>);
+    #[doc(hidden)]
+    fn __vector_clear(v: &mut CxxVector<Self>);
+    #[doc(hidden)]
     unsafe fn __get_unchecked(v: *mut CxxVector<Self>, pos: usize) -> *mut Self;
     #[doc(hidden)]
     unsafe fn __push_back(v: Pin<&mut CxxVector<Self>>, value: &mut ManuallyDrop<Self>) {
@@ -410,6 +456,46 @@ macro_rules! impl_vector_element {
                     }
                 }
                 unsafe { __vector_size(v) }
+            }
+            #[doc(hidden)]
+            fn __vector_reserve(v: &mut CxxVector<$ty>, additional: usize) {
+                extern "C" {
+                    attr! {
+                        #[link_name = concat!("cxxbridge1$std$vector$", $segment, "$reserve")]
+                        fn __vector_reserve(_: &mut CxxVector<$ty>, _: usize);
+                    }
+                }
+                unsafe { __vector_reserve(v, additional) }
+            }
+            #[doc(hidden)]
+            fn __vector_capacity(v: &CxxVector<$ty>) -> usize{
+                extern "C" {
+                    attr! {
+                        #[link_name = concat!("cxxbridge1$std$vector$", $segment, "$capacity")]
+                        fn __vector_capacity(_: &CxxVector<$ty>) -> usize;
+                    }
+                }
+                unsafe { __vector_capacity(v) }
+            }
+            #[doc(hidden)]
+            fn __vector_shrink_to_fit(v: &mut CxxVector<$ty>) {
+                extern "C" {
+                    attr! {
+                        #[link_name = concat!("cxxbridge1$std$vector$", $segment, "$shrink_to_fit")]
+                        fn __vector_shrink_to_fit(_: &mut CxxVector<$ty>);
+                    }
+                }
+                unsafe { __vector_shrink_to_fit(v) }
+            }
+            #[doc(hidden)]
+            fn __vector_clear(v: &mut CxxVector<$ty>) {
+                extern "C" {
+                    attr! {
+                        #[link_name = concat!("cxxbridge1$std$vector$", $segment, "$clear")]
+                        fn __vector_clear(_: &mut CxxVector<$ty>);
+                    }
+                }
+                unsafe { __vector_clear(v) }
             }
             #[doc(hidden)]
             unsafe fn __get_unchecked(v: *mut CxxVector<$ty>, pos: usize) -> *mut $ty {
